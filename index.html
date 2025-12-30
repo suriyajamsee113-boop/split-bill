@@ -1,166 +1,139 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>แชร์ค่าอาหาร — Split Bill</title>
-<style>
-  :root { font-family: "Segoe UI", Roboto, "Noto Sans", Arial; --accent:#2b7a78; --muted:#666; }
-  body { margin:20px; background:#f7f9fa; color:#222; }
-  h1 { color:var(--accent); margin-bottom:6px; }
-  .row { display:flex; gap:12px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
-  input[type="text"], input[type="number"] { padding:8px; border:1px solid #ccc; border-radius:6px; min-width:160px; }
-  button { padding:8px 12px; border-radius:6px; border:0; background:var(--accent); color:white; cursor:pointer; }
-  button.secondary { background:#8aa9a7; }
-  .box { background:white; padding:12px; border-radius:8px; box-shadow:0 1px 4px rgba(20,20,20,0.06); margin-bottom:12px; }
-  #friendsList { display:flex; gap:8px; flex-wrap:wrap; }
-  .friendChip { background:#eef6f6; padding:6px 10px; border-radius:20px; display:flex; gap:8px; align-items:center; }
-  .friendChip button { background:transparent; color:#c0392b; padding:0 6px; border-radius:6px; }
-  table { width:100%; border-collapse:collapse; margin-top:8px; }
-  th, td { padding:8px; border-bottom:1px solid #eee; text-align:left; vertical-align:middle; }
-  th { background:#fcffff; position:sticky; top:0; }
-  .small { font-size:0.9rem; color:var(--muted); }
-  .summary { display:flex; gap:16px; flex-wrap:wrap; }
-  .summaryItem { background:#fff; padding:10px; border-radius:8px; min-width:220px; box-shadow:0 1px 3px rgba(20,20,20,.05); }
-  .right { text-align:right; }
-  .danger { background:#fff0f0; color:#b00020; padding:6px 8px; border-radius:6px; }
-  .muted { color:#666; font-size:0.9rem; }
-  .checkboxCell { text-align:center; }
-  @media (max-width:720px) {
-    table thead th:nth-child(n+4), table tbody td:nth-child(n+4) { display:block; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5 หรรษา - Horizontal Style</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;600&display=swap');
+        
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #050505; 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px; 
+            box-sizing: border-box;
+            touch-action: manipulation; 
+        }
+
+        h1 { 
+            color: #00ff88; 
+            margin: 10px 0 20px 0; 
+            font-size: 2.5rem; 
+            text-shadow: 0 0 15px #00ff88; 
+        }
+
+        .grid { 
+            display: flex;
+            flex-direction: column;
+            gap: 15px; 
+            width: 100%; 
+            max-width: 450px; 
+            flex-grow: 1;
+        }
+
+        .card { 
+            flex: 1; /* ทำให้ทุกช่องสูงเท่ากันและขยายเต็มพื้นที่ */
+            background: linear-gradient(145deg, #1e1e1e, #111111);
+            border: 2px solid #333; 
+            border-radius: 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            font-size: 3rem; 
+            font-weight: bold; 
+            transition: 0.2s; 
+            text-align: center; 
+            padding: 10px; 
+            position: relative; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .card.active { 
+            background: #ff4757; 
+            border-color: #fff; 
+            font-size: 1.2rem; 
+            color: white; 
+            box-shadow: 0 0 25px #ff4757; 
+            transform: scale(0.98);
+        }
+
+        .timer { 
+            position: absolute; 
+            top: 50%;
+            right: 15px; 
+            transform: translateY(-50%);
+            font-size: 0.9rem; 
+            background: rgba(0,0,0,0.7); 
+            padding: 5px 10px; 
+            border-radius: 10px; 
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+    </style>
 </head>
 <body>
-  <h1>แชร์ค่าอาหาร (Split Bill)</h1>
-  <div class="box">
-    <div class="row">
-      <input id="friendName" type="text" placeholder="ใส่ชื่อเพื่อน เช่น สมชาย" />
-      <button id="addFriendBtn">เพิ่มเพื่อน</button>
-      <div class="muted">ชื่อเพื่อนจะแสดงเป็นตัวเลือกให้ติ๊กเวลาสร้างรายการ</div>
-    </div>
-    <div id="friendsList" class="row"></div>
-  </div>
 
-  <div class="box">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div><strong>เพิ่มรายการอาหาร</strong> <span class="small muted">(ราคาต่อรายการเป็นบาท)</span></div>
-      <div class="small muted">ถ้ารายการไหนยังไม่ได้ติ๊กชื่อใคร ระบบจะถือว่า "หารกับทุกคน" อัตโนมัติ</div>
-    </div>
-    <div class="row" style="margin-top:10px;">
-      <input id="itemName" type="text" placeholder="ชื่อรายการ เช่น ข้าวผัดกุ้ง" />
-      <input id="itemPrice" type="number" min="0" step="0.01" placeholder="ราคา เช่น 120.50" />
-      <button id="addItemBtn">เพิ่มรายการ</button>
+    <h1>5 หรรษา</h1>
+
+    <div class="grid" id="gameGrid">
+        <div class="card" onclick="handleCardClick(this, 1)">1</div>
+        <div class="card" onclick="handleCardClick(this, 2)">2</div>
+        <div class="card" onclick="handleCardClick(this, 3)">3</div>
+        <div class="card" onclick="handleCardClick(this, 4)">4</div>
+        <div class="card" onclick="handleCardClick(this, 5)">5</div>
     </div>
 
-    <table id="itemsTable" style="margin-top:12px;">
-      <thead id="itemsThead">
-        <!-- หัวตารางจะถูกสร้าง dynamic -->
-      </thead>
-      <tbody id="itemsTbody">
-      </tbody>
-    </table>
-  </div>
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  <div class="box">
-    <strong>สรุปยอด</strong>
-    <div class="summary" style="margin-top:8px;">
-      <div class="summaryItem">
-        <div class="small muted">ยอดรวมทั้งหมด</div>
-        <div id="totalAmount" style="font-size:1.3rem; font-weight:700">฿0.00</div>
-      </div>
-      <div class="summaryItem" style="flex:1;">
-        <div class="small muted">ยอดแต่ละคนต้องจ่าย</div>
-        <div id="perPersonList" style="margin-top:8px;">
-          <!-- รายชื่อแต่ละคนและยอดจ่าย -->
-        </div>
-      </div>
-    </div>
-  </div>
-<script>
-(() => {
-  const friends = [];
-  const items = [];
+        function playBeep() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
 
-  const $ = (id) => document.getElementById(id);
+        const punishments = [
+            "กินครึ่งแก้ว 🍺", "คนซ้ายมือดื่ม! 👈", "คนขวามือดื่ม! 👉", "ลุกขึ้นเต้น 10 วิ 💃", "หมดแก้ว! 🥂", "รอดตัวไป 😎", "สั่งใครก็ได้ดื่ม ☝️", "ดื่มตามจุดบนเสื้อ 👕", "ชื่อสัตว์ 5 ชนิดใน 3 วิ 🦁", "จ้องตาเพื่อน (หลบก่อนดื่ม) 👁️", "คนโสดดื่ม! 💔", "คนมีแฟนดื่ม! ❤️", "หาเพื่อนดื่ม 1 คน 🍻", "คว่ำแก้ว! ⬇️", "ห้ามพูด 'ไม่' 5 นาที 🤐", "ท่าตลก 1 ท่า 🤡", "ชนแก้วรอบวง 🍻", "หมดแก้วทั้งกลุ่ม! 💀", "เล่าเรื่องน่าอาย 😳", "เพศตรงข้ามดื่ม 👫", "คนใส่กางเกงยีนส์ดื่ม 👖", "คนผมสั้นดื่ม 💇", "ใครอายุน้อยสุดดื่ม 👶", "ใครอายุมากสุดดื่ม 🧓", "ดื่ม 2 อึก ✌️", "คนใส่เสื้อสีดำดื่ม 🖤", "คนใส่เสื้อขาวดื่ม 🤍", "วิดพื้น 5 ที 💪", "ให้คนข้างๆ สั่งอะไรก็ได้ 👑", "ใครถือโทรศัพท์อยู่ดื่ม 📱", "คนสูงที่สุดในโต๊ะดื่ม 🦒", "คนเตี้ยที่สุดในโต๊ะดื่ม 🐧", "ดื่มน้ำเปล่า 1 แก้ว 💧", "สมมติว่าเป็นแมว 1 นาที 🐱", "คนมีเงินเยอะสุดดื่ม 💰", "แลกแก้วกับคนซ้ายมือ 🔄", "ห้ามใช้มือจับแก้ว 3 นาที 🚫", "ร้องเพลงท่อนฮิต 🎤", "ใครมีรอยสักดื่ม 🎨", "คนใส่แว่นดื่ม 👓", "ห้ามพูดชื่อเพื่อน 5 นาที 🙊", "ใบ้คำให้เพื่อนทาย 🤐", "หัวเราะแบบนางร้าย 😈", "กระโดดตบ 10 ครั้ง 🤸", "เป่ายิ้งฉุบคนขวา แพ้ดื่ม ✌️", "จิบเบาๆ 1 ทีพอ 😋",
+            "ใครใส่แหวน ดื่ม! 💍", "ใครใส่ต่างหู รอด! ✅", "ใครไม่ใส่นาฬิกา รอด! ✅", "เสื้อสีขาว ดื่ม! ⚪", "เสื้อสีดำ ดื่ม! ⚫", "ใส่รองเท้าผ้าใบ ดื่ม! 👟", "ใส่รองเท้าแตะ รอด! 🩴", "ฉีดน้ำหอมมา ดื่ม! 💨", "ทำสีผม ดื่ม! 🌈", "ใส่สายสิญจน์ ดื่ม! 🧶", "พกยาดม ดื่ม! 👃", "ใส่กางเกงขาสั้น รอด! 🩳", "ทาสีเล็บ ดื่ม! 💅", "ใส่เสื้อกันหนาว ดื่ม! 🧥", "พกเงินสด ดื่ม! 💵", "พาวเวอร์แบงค์วางอยู่ ดื่ม! 🔋", "พกกุญแจรถ ดื่ม! 🔑", "คนผมยาว ดื่ม! 👱‍♀️", "คนหน้ามัน ดื่ม! ✨", "ใส่สร้อยคอ ดื่ม! 📿", "แอพธนาคารสีเขียว ดื่ม! 🟩", "ใช้ iPhone ดื่ม! 🍎", "ใช้ Android รอด! 🤖", "สายตาปกติ รอด! 👀", "ใส่หมวก ดื่ม! 🧢", "เสื้อมีกระดุม ดื่ม! 👔", "เสื้อมีลายการ์ตูน ดื่ม! 🐥", "สะพายกระเป๋า ดื่ม! 👜", "ไว้หนวดเครา ดื่ม! 🧔", "ใส่ถุงเท้า ดื่ม! 🧦", "พกหูฟังมา ดื่ม! 🎧", "ใส่แมสก์ค้างไว้ ดื่ม! 😷", "ใส่เสื้อเชิ้ต ดื่ม! 👔", "ใส่กางเกงวอร์ม รอด! 🏃", "มีเหรียญในเป๋า ดื่ม! 🪙", "พกบัตรประชาชน ดื่ม! 🪪", "ใส่รองเท้าส้นสูง ดื่ม! 👠", "ไว้เล็บยาว ดื่ม! 💅", "ใส่เข็มขัด ดื่ม! 🔗", "รูปแฟนขึ้นหน้าจอ ดื่ม! 📱", "ใส่เสื้อยืด ดื่ม! 👕", "พกผ้าเช็ดหน้า รอด! 🧊", "เสื้อสีน้ำเงิน ดื่ม! 🔵", "ยิ้มสวย รอด! 😁", "เป็นคนชวนมา ดื่ม! 📣", "เกิดเดือนนี้ ดื่ม! 🎂", "ใส่สร้อยข้อมือ ดื่ม! ⌚", "พกจีช็อค ดื่ม! ⌚", "ย้อมผมสีเข้ม รอด! 💆", "ยังไม่ได้อาบน้ำ ดื่ม! 🚿"
+        ];
 
-  function formatB(cents) {
-    return '฿' + (cents / 100).toFixed(2);
-  }
+        function handleCardClick(element, originalNumber) {
+            if (element.classList.contains('active')) return;
 
-  function uid() {
-    return Math.random().toString(36).slice(2, 9);
-  }
+            playBeep();
+            if (navigator.vibrate) navigator.vibrate(100);
 
-  const friendNameInput = $('friendName');
-  const addFriendBtn = $('addFriendBtn');
-  const friendsListDiv = $('friendsList');
+            const punishment = punishments[Math.floor(Math.random() * punishments.length)];
+            element.innerHTML = punishment + `<div class="timer" id="t-${originalNumber}">10</div>`;
+            element.classList.add('active');
 
-  const itemNameInput = $('itemName');
-  const itemPriceInput = $('itemPrice');
-  const addItemBtn = $('addItemBtn');
-
-  const itemsThead = $('itemsThead');
-  const itemsTbody = $('itemsTbody');
-  const totalAmountDiv = $('totalAmount');
-  const perPersonListDiv = $('perPersonList');
-
-  addFriendBtn.onclick = () => {
-    const name = friendNameInput.value.trim();
-    if (!name) return alert('กรุณาใส่ชื่อเพื่อน');
-    friends.push({ id: uid(), name });
-    friendNameInput.value = '';
-    render();
-  };
-
-  addItemBtn.onclick = () => {
-    const name = itemNameInput.value.trim();
-    const price = Number(itemPriceInput.value);
-    if (!name || isNaN(price)) return alert('กรุณากรอกข้อมูลให้ครบ');
-    items.push({ name, cents: Math.round(price * 100), shares: [] });
-    itemNameInput.value = '';
-    itemPriceInput.value = '';
-    render();
-  };
-
-  function render() {
-    friendsListDiv.innerHTML = friends
-      .map(f => `<div class="friendChip">${f.name}</div>`)
-      .join('');
-
-    itemsThead.innerHTML = `
-      <tr>
-        <th>รายการ</th>
-        <th class="right">ราคา</th>
-        ${friends.map(f => `<th>${f.name}</th>`).join('')}
-      </tr>
-    `;
-
-    let total = 0;
-    const pay = Object.fromEntries(friends.map(f => [f.name, 0]));
-
-    itemsTbody.innerHTML = items.map(item => {
-      total += item.cents;
-      const shareWith = friends.length || 1;
-      const each = Math.floor(item.cents / shareWith);
-      friends.forEach(f => pay[f.name] += each);
-
-      return `
-        <tr>
-          <td>${item.name}</td>
-          <td class="right">${formatB(item.cents)}</td>
-          ${friends.map(() => `<td>✓</td>`).join('')}
-        </tr>
-      `;
-    }).join('');
-
-    totalAmountDiv.textContent = formatB(total);
-    perPersonListDiv.innerHTML = Object.entries(pay)
-      .map(([name, cents]) => `<div>${name} : ${formatB(cents)}</div>`)
-      .join('');
-  }
-
-})();
-</script>
+            let timeLeft = 10;
+            const timerElement = document.getElementById(`t-${originalNumber}`);
+            
+            const countdown = setInterval(() => {
+                timeLeft--;
+                if (timerElement) timerElement.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    element.classList.remove('active');
+                    element.innerHTML = originalNumber;
+                }
+            }, 1000);
+        }
+    </script>
 </body>
 </html>
